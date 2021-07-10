@@ -3,3 +3,4 @@ demouser.csr
 demouser.key
 demouser.base64.csr
 simplilearn-access-key.pem
+demouser.conf
