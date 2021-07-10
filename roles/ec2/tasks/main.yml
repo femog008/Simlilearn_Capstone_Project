@@ -1,0 +1,41 @@
+---
+# tasks file for ec2
+- name: Launching three EC2 instances on AWS
+  ec2:
+    key_name: "{{ keypair_name }}"
+    instance_type: "{{ instance_flavour }}"
+    image: "{{ ami_id }}"
+    wait: true
+    group_id: "{{ sg_id }}"
+    count: 1
+    vpc_subnet_id: "{{ vpc_subnet_id }}"
+    assign_public_ip: yes
+    region: "{{ region_name }}"
+    state: "{{ state }}"
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    instance_tags:
+      Name: "{{ item }}"
+  register: ec2
+  loop: "{{ instance_tag }}"
+
+- name: Add 1st instance to host group ec2_master
+  add_host:
+    hostname: "{{ ec2.results[0].instances[0].public_ip }}"
+    groupname: ec2_master
+
+- name: Add 2nd instance to host group ec2_worker
+  add_host:
+    hostname: "{{ ec2.results[1].instances[0].public_ip }}"
+    groupname: ec2_workers
+
+- name: Add 3rd instance to host group ec2_worker
+  add_host:
+    hostname: "{{ ec2.results[2].instances[0].public_ip }}"
+    groupname: ec2_workers
+
+- name: Wait for SSH to come up
+  wait_for:
+    host: "{{ ec2.results[2].instances[0].public_dns_name }}"
+    port: 22
+    state: started

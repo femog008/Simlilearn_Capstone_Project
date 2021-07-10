@@ -1,0 +1,13 @@
+---
+# vars file for ec2
+instance_tag:
+        - master-node
+        - worker-node1
+        - worker-node2
+
+region_name: us-east-1
+subnet_name: allow-sg-subnet
+ami_id: ami-0ab4d1e9cf9a1215a
+instance_flavour: t2.medium
+keypair_name: simplilearn-access-key
+state: present

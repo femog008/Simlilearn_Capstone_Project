@@ -1,0 +1,39 @@
+---
+# vars file for vpc
+
+python_pkgs:
+        - boto
+        - boto3
+
+region: "us-east-1"
+
+# VPC
+vpcCidrBlock: '10.0.0.0/16'
+portCidrBlock: '0.0.0.0/0'
+destinationCidrBlock: '0.0.0.0/0'
+
+vpc_name: "Simplilearn Capstone Project"
+
+# Subnet
+subnetName: "Simplilearn Subnet"
+subNetCidrBlock: '10.0.1.0/24'
+
+igwName: "Traffic IGW"
+
+
+#route table name
+routeName: "Public Simplilearn"
+
+securityGroupName: "Simplilearn Security Group"
+
+ec2_tag: "WebServer"
+
+
+#key storage location
+#ec2_key_directory: "/home/vagrant/masonfrank/"
+keypair_name: simplilearn-access-key
+#keypair_name: "ansible_key"
+
+
+state: "present"
+#zone: "ap-south-1a"

@@ -1,0 +1,76 @@
+---
+# tasks file for vpc
+- name: Installing boto & boto3 on local system
+  pip:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ python_pkgs }}"
+- name: Creating VPC
+  ec2_vpc_net:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      name: "Kube_VPC"
+      cidr_block: "{{ vpcCidrBlock }}"
+      region: "{{ region }}"
+      dns_support: yes
+      dns_hostnames: yes
+      state: "{{ state }}"
+  register: vpc_results
+- name: create ec2 vpc internet gateway
+  ec2_vpc_igw:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      vpc_id: "{{ vpc_results.vpc.id }}"
+      region: "{{ region }}"
+      state: "{{ state }}"
+      tags:
+        Name: "{{ igwName }}"
+  register: igw_result
+- name: create ec2 vpc subnet
+  ec2_vpc_subnet:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      vpc_id: "{{ vpc_results.vpc.id }}"
+      region: "{{ region }}"
+      #az: "{{ zone }}"
+      state: "{{ state }}"
+      cidr: "{{ subNetCidrBlock }}"
+      map_public: yes
+      resource_tags:
+        Name: "{{ subnetName }}"
+  register: subnet_result
+- name: Set VPC ID in variable
+  set_fact:
+    vpc_subnet_id: "{{ subnet_result.subnet.id }}"
+- name: create ec2 security group
+  ec2_group:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      vpc_id: "{{ vpc_results.vpc.id }}"
+      region: "{{ region }}"
+      state: "{{ state }}"
+      name: "{{ securityGroupName }}"
+      description: "Kube_Security_Group"
+      tags:
+        Name: "{{ securityGroupName }}"
+      rules:
+      - proto: all
+        cidr_ip: "{{ portCidrBlock }}"
+        rule_desc: Allowing ALL TRAFFIC
+  register: security_group_results
+- name: Set SecurityGroup ID in variable
+  set_fact:
+    sg_id: "{{ security_group_results.group_id }}"
+- name: Creating routes
+  ec2_vpc_route_table:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      vpc_id: "{{ vpc_results.vpc.id }}"
+      region: "{{ region }}"
+      state: "{{ state }}"
+      tags:
+        Name: "{{ routeName }}"
+      subnets: [ "{{ subnet_result.subnet.id }}" ]
+      routes:
+        - dest: "{{ destinationCidrBlock }}"
+          gateway_id: "{{ igw_result.gateway_id }}"
